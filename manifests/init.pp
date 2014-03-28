@@ -19,7 +19,7 @@
 #   total database size on disk.  Must already exist.
 #   (Optional, uses /tmp by default)
 # [*outputdir*]
-#   Directory to write backups to.  If sshdest is also specified, will be the remote 
+#   Directory to write backups to.  If sshdest is also specified, will be the remote
 #   database host.  Must already exist.
 #   (Required)
 # [*sshdest*]
@@ -87,11 +87,13 @@ class xtrabackup ($dbuser,             # Database username
                   $parallel  = 1,      # Threads to use
                   $slaveinfo = undef,  # Record master log pos if true
                   $safeslave = undef,  # Disconnect clients from slave
-                  $addrepo   = true    # Add the Percona yum/apt repo
+                  $addrepo   = true,   # Add the Percona yum/apt repo
+                  $manage_package = true # Install the package
                  ) {
 
-  if ($addrepo) {
-      if ($osfamily == "RedHat") {
+  if $manage_package {
+    if $addrepo {
+      if $osfamily == "RedHat" {
         yumrepo { "percona":
           name     => "Percona-Repository",
           gpgkey   => "http://www.percona.com/downloads/RPM-GPG-KEY-percona",
@@ -102,10 +104,11 @@ class xtrabackup ($dbuser,             # Database username
       } else {
         fail("Repository addition not supported for your distro")
       }
-  }
+    }
 
-  package { "percona-xtrabackup":
-    ensure => installed,
+    package { "percona-xtrabackup":
+      ensure => installed,
+    }
   }
 
   file { "/usr/local/bin/mysql-backup":
